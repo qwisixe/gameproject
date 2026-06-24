@@ -1,0 +1,16 @@
+# Сохранения игрока
+score.txt
+upgrades.txt
+
+# PyInstaller сборки
+dist/
+build/
+*.spec
+
+# Виртуальное окружение
+.venv/
+venv/
+
+# Разное
+__pycache__/
+*.pyc
