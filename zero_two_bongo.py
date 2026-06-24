@@ -1,77 +1,78 @@
 import tkinter as tk
+from PIL import Image, ImageTk  # нужна Pillow
 import time
+from itertools import count
 
-GIF_PATH = "zero_two.gif"  # имя gif-файла рядом со скриптом
+GIF_PATH = "zero_two.gif"  # твоя гифка
 
-class ZeroTwoBongo:
+class ZeroTwoBongo(tk.Tk):
     def __init__(self):
-        # окно
-        self.root = tk.Tk()
-        self.root.title("Zero Two Bongo")
-        self.root.configure(bg="black")
-        self.root.overrideredirect(True)  # без рамки
+        super().__init__()
+        self.title("Zero Two Bongo")
+        self.configure(bg="black")
+        self.overrideredirect(True)
+        self.geometry("300x300+100+100")
 
-        # позиция/размер окна
-        self.root.geometry("300x300+100+100")
-
-        # загружаем все кадры gif
-        self.frames = []
+        # Загружаем GIF через Pillow
         try:
-            # пробуем прочитать до 100 кадров
-            for i in range(100):
-                frame = tk.PhotoImage(file=GIF_PATH, format=f"gif -index {i}")
+            pil_image = Image.open(GIF_PATH)
+        except Exception as e:
+            raise RuntimeError(f"Не удалось открыть GIF {GIF_PATH}: {e}")
+
+        self.frames = []
+        # соберём все кадры
+        try:
+            for i in count(0):
+                pil_image.seek(i)
+                frame = ImageTk.PhotoImage(pil_image.copy())
                 self.frames.append(frame)
-        except tk.TclError:
-            # gif закончился — выходим из цикла
+        except EOFError:
             pass
 
         if not self.frames:
-            raise RuntimeError(f"Не удалось загрузить кадры из {GIF_PATH}. Проверь имя файла и его расположение.")
+            raise RuntimeError("GIF не содержит кадров или не поддерживается.")
 
         # состояние анимации
         self.current_frame_index = 0
-        self.last_frame_change_time = time.time()
-        self.base_speed = 0.12       # базовая скорость (сек на кадр)
-        self.current_speed = self.base_speed
+        self.base_delay = pil_image.info.get("duration", 100) / 1000.0  # мс -> секунды [web:74]
+        self.current_delay = self.base_delay
 
-        # виджет с картинкой
-        self.label = tk.Label(self.root, bg="black")
+        # виджет
+        self.label = tk.Label(self, bg="black")
         self.label.pack(expand=True)
 
         # счётчик
         self.score = 0
-        self.score_label = tk.Label(self.root, text=f"Score: {self.score}", fg="white", bg="black")
+        self.score_label = tk.Label(self, text=f"Score: {self.score}", fg="white", bg="black")
         self.score_label.pack()
 
-        # реакция на клавиши
-        self.root.bind("<KeyPress>", self.on_key_press)
+        # биндим клавиши
+        self.bind("<KeyPress>", self.on_key_press)
 
-        # запуск анимации
-        self.update_animation()
-        self.root.mainloop()
+        # запускаем анимацию
+        self.last_change = time.time()
+        self.animate()
 
     def on_key_press(self, event):
-        # при нажатии любой клавиши
+        # "удар" по бонго — ускоряем анимацию и добавляем очки
         self.score += 1
         self.score_label.config(text=f"Score: {self.score}")
-        # ускоряем анимацию
-        self.current_speed = max(0.04, self.current_speed * 0.7)
+        self.current_delay = max(0.04, self.current_delay * 0.7)
 
-    def update_animation(self):
+    def animate(self):
         now = time.time()
-        # смена кадра
-        if now - self.last_frame_change_time >= self.current_speed:
-            self.last_frame_change_time = now
+        if now - self.last_change >= self.current_delay:
+            self.last_change = now
             self.current_frame_index = (self.current_frame_index + 1) % len(self.frames)
             self.label.config(image=self.frames[self.current_frame_index])
 
-            # плавно возвращаемся к базовой скорости
-            if self.current_speed < self.base_speed:
-                self.current_speed += 0.01
+            # медленно возвращаемся к базовой скорости
+            if self.current_delay < self.base_delay:
+                self.current_delay += 0.01
 
-        # повторяем каждые 10 мс
-        self.root.after(10, self.update_animation)
+        self.after(10, self.animate)
 
 
 if __name__ == "__main__":
-    ZeroTwoBongo()
+    app = ZeroTwoBongo()
+    app.mainloop()
