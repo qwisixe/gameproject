@@ -19,10 +19,21 @@ class ZeroTwoGame(tk.Tk):
         self.maxsize(640, 640)
         self.configure(bg="#ffb6c1")
 
+        # состояние
         self.score = self.load_score()
-        self.multiplier, self.auto_interval_ms, self.use_alt_skin, self.anim_speed_factor = self.load_upgrades()
+        (
+            self.multiplier,
+            self.auto_interval_ms,
+            self.use_alt_skin,
+            self.anim_speed_factor,
+            self.alt_unlocked,
+        ) = self.load_upgrades()
 
         self.current_frame = None
+
+        # флаги процессов
+        self.animation_running = False
+        self.auto_click_running = False
 
         self.create_start_screen()
 
@@ -106,21 +117,23 @@ class ZeroTwoGame(tk.Tk):
     # ===== запуск игры =====
 
     def start_game(self):
-        # при заходе в игру сбрасываем auto_click_running
+        # при входе в игру сброс флагов
+        self.animation_running = False
         self.auto_click_running = False
 
         self._switch_frame(bg="#1b1b2f")
 
-        # область с GIF
         self.image_label = tk.Label(self.current_frame, bg="#1b1b2f")
         self.image_label.pack(expand=True, fill=tk.BOTH)
 
-        # нижняя панель
         self.panel = tk.Frame(self.current_frame, bg="#ff69b4", height=80)
         self.panel.pack(fill=tk.X, side=tk.BOTTOM)
 
-        # загрузка кадров GIF
+        # загрузка кадров и запуск анимации
         self.load_gif_frames()
+        self.current_frame_index = 0
+        self.animation_running = True
+        self.animate()
 
         # счёт
         self.score_label = tk.Label(
@@ -132,7 +145,7 @@ class ZeroTwoGame(tk.Tk):
         )
         self.score_label.pack(side=tk.LEFT, padx=10)
 
-        # кнопка Hit
+        # Hit
         self.hit_button = tk.Button(
             self.panel,
             text="Hit!",
@@ -150,7 +163,7 @@ class ZeroTwoGame(tk.Tk):
         )
         self.hit_button.pack(side=tk.RIGHT, padx=10)
 
-        # кнопка Shop
+        # Shop
         self.shop_button = tk.Button(
             self.panel,
             text="Shop",
@@ -168,7 +181,7 @@ class ZeroTwoGame(tk.Tk):
         )
         self.shop_button.pack(side=tk.LEFT, padx=10)
 
-        # кнопка Меню (выход в главное меню)
+        # Меню
         self.menu_button = tk.Button(
             self.panel,
             text="Меню",
@@ -188,19 +201,19 @@ class ZeroTwoGame(tk.Tk):
 
         self.bind("<KeyPress>", self.on_key_press)
 
-        self.current_frame_index = 0
-        self.animate()
+        # авто-кликер
         self.start_auto_clicker()
 
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def back_to_menu(self):
-        # сохраняем прогресс и возвращаем в главное меню
         self.save_score()
         self.save_upgrades()
+        self.animation_running = False
+        self.auto_click_running = False
         self.create_start_screen()
 
-    # ===== вспомогательное для экранов =====
+    # ===== переключение экранов =====
 
     def _switch_frame(self, bg):
         if self.current_frame is not None:
@@ -209,10 +222,10 @@ class ZeroTwoGame(tk.Tk):
         frame.pack(fill=tk.BOTH, expand=True)
         self.current_frame = frame
 
-    # ===== GIF =====
+    # ===== GIF / анимация =====
 
     def load_gif_frames(self):
-        # безопаная смена скина
+        # выбор GIF по флагу use_alt_skin и наличию файла [web:160]
         if self.use_alt_skin and os.path.exists(ALT_GIF):
             gif_path = ALT_GIF
             alt_mode = True
@@ -240,16 +253,26 @@ class ZeroTwoGame(tk.Tk):
 
         base_delay = pil_image.info.get("duration", 100) / 1000.0
 
-        # если ALT‑скин, делаем его быстрее, чем обычный
         speed_factor = self.anim_speed_factor
         if alt_mode:
-            speed_factor *= 1.5  # доп. ускорение для альтернативного скина
+            speed_factor *= 1.5
 
         self.base_delay = max(0.02, base_delay / speed_factor)
 
+    def restart_animation(self):
+        # аккуратный перезапуск анимации при смене скина/скорости [web:170][web:177]
+        self.animation_running = False
+        self.load_gif_frames()
+        self.current_frame_index = 0
+        self.animation_running = True
+        self.animate()
+
     def animate(self):
+        if not self.animation_running:
+            return
         if not hasattr(self, "frames") or not self.frames:
             return
+
         self.image_label.config(image=self.frames[self.current_frame_index])
         self.image_label.image = self.frames[self.current_frame_index]
 
@@ -278,7 +301,8 @@ class ZeroTwoGame(tk.Tk):
             pass
 
     def load_upgrades(self):
-        default = (1.0, 0, False, 1.0)
+        # добавили alt_unlocked как отдельный флаг [web:132][web:184]
+        default = (1.0, 0, False, 1.0, False)
         if os.path.exists(UPGRADE_FILE):
             try:
                 with open(UPGRADE_FILE, "r", encoding="utf-8") as f:
@@ -289,7 +313,8 @@ class ZeroTwoGame(tk.Tk):
                         auto_ms = int(parts[1])
                         use_alt = parts[2] == "1"
                         anim_speed = float(parts[3])
-                        return mult, auto_ms, use_alt, anim_speed
+                        alt_unlocked = parts[4] == "1" if len(parts) > 4 else False
+                        return mult, auto_ms, use_alt, anim_speed, alt_unlocked
             except Exception:
                 return default
         return default
@@ -298,7 +323,11 @@ class ZeroTwoGame(tk.Tk):
         try:
             with open(UPGRADE_FILE, "w", encoding="utf-8") as f:
                 use_alt_flag = "1" if self.use_alt_skin else "0"
-                f.write(f"{self.multiplier};{self.auto_interval_ms};{use_alt_flag};{self.anim_speed_factor}")
+                alt_unlocked_flag = "1" if self.alt_unlocked else "0"
+                f.write(
+                    f"{self.multiplier};{self.auto_interval_ms};"
+                    f"{use_alt_flag};{self.anim_speed_factor};{alt_unlocked_flag}"
+                )
         except Exception:
             pass
 
@@ -324,6 +353,8 @@ class ZeroTwoGame(tk.Tk):
     def on_close(self):
         self.save_score()
         self.save_upgrades()
+        self.animation_running = False
+        self.auto_click_running = False
         self.destroy()
 
     # ===== авто-кликер =====
@@ -344,7 +375,7 @@ class ZeroTwoGame(tk.Tk):
     def open_shop(self):
         shop = tk.Toplevel(self)
         shop.title("Shop")
-        shop.geometry("360x400+760+120")
+        shop.geometry("360x420+760+120")
         shop.configure(bg="#ffb6c1")
 
         info = tk.Label(
@@ -404,7 +435,7 @@ class ZeroTwoGame(tk.Tk):
 
         btn_skin = tk.Button(
             shop,
-            text="Сменить скин на ALT (200 Score)",
+            text="Купить ALT скин (200 Score)",
             fg="white",
             bg="#ff1493",
             activebackground="#ff85c2",
@@ -417,7 +448,6 @@ class ZeroTwoGame(tk.Tk):
         )
         btn_skin.pack(pady=5)
 
-        # инвентарь скинов (выбор MAIN/ALT без покупки)
         btn_inventory = tk.Button(
             shop,
             text="Инвентарь скинов",
@@ -469,7 +499,8 @@ class ZeroTwoGame(tk.Tk):
             f"Множитель: x{self.multiplier:.1f}\n"
             f"Автокликер: "
             f"{'ON (' + str(self.auto_interval_ms) + ' ms)' if self.auto_interval_ms else 'OFF'}\n"
-            f"Скин: {'ALT' if self.use_alt_skin else 'MAIN'}\n"
+            f"Скин сейчас: {'ALT' if self.use_alt_skin else 'MAIN'}\n"
+            f"ALT разблокирован: {'YES' if self.alt_unlocked else 'NO'}\n"
             f"Скорость анимации: x{self.anim_speed_factor:.1f}"
         )
 
@@ -519,17 +550,30 @@ class ZeroTwoGame(tk.Tk):
             self._not_enough_score(shop_window)
 
     def buy_skin(self, shop_window, info_label, cost):
+        # покупка ALT‑скина навсегда
+        if self.alt_unlocked:
+            msg = tk.Label(
+                shop_window,
+                text="ALT уже куплен. Используй инвентарь скинов.",
+                fg="#1b1b2f",
+                bg="#ffb6c1",
+                font=("Arial", 11),
+            )
+            msg.pack(pady=3)
+            return
+
         if self.score >= cost:
             self.score -= cost
-            self.use_alt_skin = True
-            self.load_gif_frames()
+            self.alt_unlocked = True
+            self.use_alt_skin = True  # сразу включаем ALT
+            self.restart_animation()
             self.update_score_label()
             self.save_score()
             self.save_upgrades()
             self.refresh_shop_info(info_label)
             msg = tk.Label(
                 shop_window,
-                text="Скин куплен! Теперь доступен ALT.",
+                text="Скин куплен! ALT теперь навсегда доступен.",
                 fg="#1b1b2f",
                 bg="#ffb6c1",
                 font=("Arial", 11),
@@ -541,7 +585,7 @@ class ZeroTwoGame(tk.Tk):
     def open_skin_inventory(self, shop_window, info_label):
         inv = tk.Toplevel(shop_window)
         inv.title("Инвентарь скинов")
-        inv.geometry("260x200+820+160")
+        inv.geometry("260x220+820+160")
         inv.configure(bg="#ffb6c1")
 
         title = tk.Label(
@@ -568,20 +612,31 @@ class ZeroTwoGame(tk.Tk):
         )
         btn_main.pack(pady=5)
 
-        btn_alt = tk.Button(
-            inv,
-            text="ALT",
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=2,
-            font=("Arial", 11, "bold"),
-            cursor="hand2",
-            command=lambda: self.set_skin(inv, info_label, use_alt=True),
-        )
-        btn_alt.pack(pady=5)
+        # ALT доступен только если куплен
+        if self.alt_unlocked:
+            btn_alt = tk.Button(
+                inv,
+                text="ALT",
+                fg="white",
+                bg="#ff1493",
+                activebackground="#ff85c2",
+                activeforeground="white",
+                relief="raised",
+                bd=2,
+                font=("Arial", 11, "bold"),
+                cursor="hand2",
+                command=lambda: self.set_skin(inv, info_label, use_alt=True),
+            )
+            btn_alt.pack(pady=5)
+        else:
+            info_alt = tk.Label(
+                inv,
+                text="ALT ещё не куплен в магазине.",
+                fg="#1b1b2f",
+                bg="#ffb6c1",
+                font=("Arial", 11),
+            )
+            info_alt.pack(pady=5)
 
         close_btn = tk.Button(
             inv,
@@ -599,8 +654,14 @@ class ZeroTwoGame(tk.Tk):
         close_btn.pack(pady=10)
 
     def set_skin(self, inv_window, info_label, use_alt):
+        # выбор скина без затрат очков (если ALT куплен)
+        if use_alt and not self.alt_unlocked:
+            # защита, на всякий случай
+            inv_window.destroy()
+            return
+
         self.use_alt_skin = use_alt
-        self.load_gif_frames()
+        self.restart_animation()
         self.update_score_label()
         self.save_upgrades()
         self.refresh_shop_info(info_label)
@@ -610,7 +671,7 @@ class ZeroTwoGame(tk.Tk):
         if self.score >= cost:
             self.score -= cost
             self.anim_speed_factor *= 1.5
-            self.load_gif_frames()
+            self.restart_animation()
             self.update_score_label()
             self.save_score()
             self.save_upgrades()
