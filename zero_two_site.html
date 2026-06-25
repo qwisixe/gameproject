@@ -2,83 +2,92 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>Zero Two Bongo — розовый кликер</title>
+  <title>Zero Two Bongo — розовый кликер для Windows 10/11</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Zero Two Bongo — розовый кликер с Zero Two, анимацией бонго и прокачкой. Скачать бесплатно для Windows 10/11 и старых версий Windows." />
+  <meta name="description" content="Zero Two Bongo — розовый кликер с Zero Two и анимацией бонго. Скачай бесплатную версию для Windows 10/11 и расслабься под мягкий розовый UI." />
   <style>
     :root {
-      --bg: #0c0b18;
-      --bg-soft: #161523;
-      --bg-card: #1e1b2f;
-      --bg-pink: #ff6fb7;
-      --bg-pink-soft: #ff9ed4;
-      --bg-chip: rgba(255, 158, 212, 0.12);
-      --text-main: #fdf5ff;
-      --text-muted: #b7b1d8;
+      --bg-deep: #0b0612;
+      --bg-main: #14091f;
+      --bg-card: #1b0d29;
+      --bg-accent: #ff82c3;
+      --bg-accent-soft: #ffb7e2;
+      --bg-chip: rgba(255, 178, 226, 0.13);
+      --text-main: #fff7ff;
+      --text-muted: #b5a7d9;
       --accent: #ff9ed4;
-      --accent-strong: #ff2e9f;
-      --border-soft: rgba(255, 255, 255, 0.06);
-      --radius-lg: 20px;
-      --radius-md: 12px;
+      --accent-strong: #ff2c9e;
+      --border-soft: rgba(255, 255, 255, 0.1);
+      --radius-lg: 22px;
+      --radius-md: 14px;
       --radius-pill: 999px;
-      --shadow-soft: 0 18px 60px rgba(0, 0, 0, 0.6);
+      --shadow-strong: 0 22px 80px rgba(0, 0, 0, 0.85);
       --transition-fast: 0.18s ease-out;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       min-height: 100vh;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background:
-        radial-gradient(circle at 10% 0%, rgba(255, 182, 240, 0.16), transparent 55%),
-        radial-gradient(circle at 90% 20%, rgba(140, 122, 255, 0.22), transparent 60%),
-        radial-gradient(circle at 50% 100%, rgba(255, 105, 180, 0.3), transparent 55%),
-        var(--bg);
+        radial-gradient(circle at 10% 0%, rgba(255, 186, 242, 0.25), transparent 55%),
+        radial-gradient(circle at 85% 10%, rgba(145, 127, 255, 0.35), transparent 60%),
+        radial-gradient(circle at 50% 100%, rgba(255, 105, 180, 0.35), transparent 60%),
+        var(--bg-deep);
       color: var(--text-main);
       display: flex;
       flex-direction: column;
     }
 
-    a { color: inherit; text-decoration: none; }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
 
     header {
       position: sticky;
       top: 0;
       z-index: 40;
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(18px);
       background: linear-gradient(
         to bottom,
-        rgba(6, 5, 15, 0.92),
-        rgba(6, 5, 15, 0.75),
+        rgba(5, 2, 12, 0.92),
+        rgba(5, 2, 12, 0.78),
         transparent
       );
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     }
 
     .nav-inner {
-      max-width: 1120px;
+      max-width: 1160px;
       margin: 0 auto;
       padding: 14px 18px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
+      gap: 14px;
     }
 
     .logo {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .logo-avatar {
-      width: 36px;
-      height: 36px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       background:
-        radial-gradient(circle at 30% 20%, #ffe7fb, #ff2e9f);
-      box-shadow: 0 0 0 3px rgba(255, 182, 240, 0.3);
+        radial-gradient(circle at 30% 20%, #ffe7fb, #ff2c9e);
+      box-shadow:
+        0 0 0 3px rgba(255, 182, 240, 0.35),
+        0 10px 24px rgba(255, 44, 158, 0.55);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -87,14 +96,14 @@
       font-size: 20px;
     }
 
-    .logo-text-main {
+    .logo-title {
       font-weight: 800;
-      letter-spacing: 0.04em;
       font-size: 16px;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
-    .logo-text-sub {
+    .logo-sub {
       font-size: 11px;
       color: var(--text-muted);
     }
@@ -113,7 +122,7 @@
     }
 
     .nav-links a:hover {
-      background: rgba(255, 158, 212, 0.12);
+      background: rgba(255, 178, 226, 0.18);
       color: #fff;
       transform: translateY(-1px);
     }
@@ -138,18 +147,22 @@
     }
 
     .btn-primary {
-      background: linear-gradient(120deg, #ff2e9f, #ff6fb7, #ffc1e4);
-      color: #190c24;
-      box-shadow: 0 12px 30px rgba(255, 46, 159, 0.45);
+      background: linear-gradient(120deg, #ff2c9e, #ff82c3, #ffd2f0);
+      color: #19091f;
+      box-shadow:
+        0 12px 34px rgba(255, 44, 158, 0.65),
+        0 0 40px rgba(255, 130, 195, 0.45);
     }
 
     .btn-primary:hover {
       transform: translateY(-2px);
-      box-shadow: 0 18px 40px rgba(255, 46, 159, 0.65);
+      box-shadow:
+        0 18px 48px rgba(255, 44, 158, 0.85),
+        0 0 60px rgba(255, 130, 195, 0.6);
     }
 
     .btn-ghost {
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.03);
       color: var(--text-muted);
       border: 1px solid rgba(255, 255, 255, 0.08);
     }
@@ -160,43 +173,51 @@
       transform: translateY(-1px);
     }
 
-    @media (max-width: 840px) {
-      .nav-links { display: none; }
-      .nav-inner { padding-inline: 14px; }
+    @media (max-width: 860px) {
+      .nav-links {
+        display: none;
+      }
+      .nav-inner {
+        padding-inline: 14px;
+      }
     }
 
-    main { flex: 1; }
+    main {
+      flex: 1;
+    }
 
     .hero {
-      max-width: 1120px;
+      max-width: 1160px;
       margin: 0 auto;
-      padding: 28px 18px 20px;
+      padding: 26px 18px 20px;
       display: grid;
-      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.3fr);
-      gap: 26px;
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.35fr);
+      gap: 28px;
       align-items: center;
     }
 
     @media (max-width: 900px) {
       .hero {
         grid-template-columns: minmax(0, 1fr);
-        padding-top: 20px;
+        padding-top: 22px;
       }
     }
 
-    .hero-text { position: relative; }
+    .hero-text {
+      position: relative;
+    }
 
     .hero-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 5px 11px;
+      padding: 5px 12px;
       border-radius: var(--radius-pill);
-      background: rgba(255, 158, 212, 0.16);
-      border: 1px solid rgba(255, 158, 212, 0.5);
+      background: rgba(255, 188, 235, 0.16);
+      border: 1px solid rgba(255, 188, 235, 0.6);
       color: var(--accent);
       font-size: 11px;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       margin-bottom: 10px;
     }
@@ -211,20 +232,24 @@
 
     .hero-title {
       font-size: 32px;
-      line-height: 1.15;
+      line-height: 1.16;
       margin-bottom: 10px;
-      text-shadow: 0 0 24px rgba(255, 111, 183, 0.45);
+      text-shadow:
+        0 0 24px rgba(255, 130, 195, 0.6),
+        0 0 60px rgba(255, 44, 158, 0.4);
     }
 
-    @media (max-width: 520px) {
-      .hero-title { font-size: 26px; }
+    @media (max-width: 540px) {
+      .hero-title {
+        font-size: 26px;
+      }
     }
 
     .hero-subtitle {
       font-size: 14px;
       color: var(--text-muted);
-      max-width: 500px;
-      margin-bottom: 16px;
+      max-width: 520px;
+      margin-bottom: 18px;
     }
 
     .hero-tags {
@@ -235,13 +260,13 @@
     }
 
     .chip {
-      padding: 4px 10px;
+      padding: 4px 11px;
       border-radius: var(--radius-pill);
       font-size: 11px;
       font-weight: 600;
       background: var(--bg-chip);
       color: var(--accent);
-      border: 1px solid rgba(255, 158, 212, 0.3);
+      border: 1px solid rgba(255, 178, 226, 0.35);
     }
 
     .hero-actions {
@@ -276,24 +301,26 @@
     .hero-visual {
       position: relative;
       padding: 16px;
-      border-radius: 28px;
+      border-radius: 32px;
       background:
-        radial-gradient(circle at 20% 0%, rgba(255, 182, 240, 0.25), transparent 60%),
-        radial-gradient(circle at 90% 80%, rgba(112, 86, 255, 0.25), transparent 55%),
-        linear-gradient(145deg, #171323, #110f1c);
-      box-shadow: var(--shadow-soft);
+        radial-gradient(circle at 20% 0%, rgba(255, 188, 235, 0.25), transparent 60%),
+        radial-gradient(circle at 90% 80%, rgba(114, 93, 255, 0.25), transparent 55%),
+        linear-gradient(150deg, #170b25, #120619);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: var(--shadow-strong);
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .hero-visual-inner {
-      border-radius: 22px;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      padding: 14px 14px 10px;
-      background: radial-gradient(circle at 0 0, rgba(255, 235, 255, 0.08), transparent 60%);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      padding: 14px 14px 12px;
+      background:
+        radial-gradient(circle at 0 0, rgba(255, 229, 255, 0.1), transparent 60%),
+        rgba(10, 3, 18, 0.96);
     }
 
-    .hero-visual-header {
+    .hero-window-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -302,31 +329,31 @@
       color: var(--text-muted);
     }
 
-    .hero-visual-dots {
+    .window-dots {
       display: flex;
-      gap: 5px;
+      gap: 6px;
     }
 
-    .hero-visual-dot {
+    .window-dot {
       width: 8px;
       height: 8px;
       border-radius: 999px;
     }
 
-    .hero-visual-dot.red { background: #ff5f57; }
-    .hero-visual-dot.yellow { background: #febc2e; }
-    .hero-visual-dot.green { background: #28c840; }
+    .window-dot.red { background: #ff5f57; }
+    .window-dot.yellow { background: #febc2e; }
+    .window-dot.green { background: #28c840; }
 
-    .hero-gif-box {
-      border-radius: 18px;
+    .hero-gif-frame {
+      border-radius: 20px;
       background:
-        linear-gradient(135deg, rgba(255, 182, 240, 0.35), rgba(255, 111, 183, 0.2), rgba(74, 68, 119, 0.7));
+        linear-gradient(135deg, rgba(255, 188, 235, 0.5), rgba(255, 130, 195, 0.35), rgba(88, 71, 145, 0.85));
       padding: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 160px;
-      color: #ffe7ff;
+      min-height: 180px;
+      color: #ffe5ff;
       text-align: center;
       font-size: 13px;
       position: relative;
@@ -334,8 +361,8 @@
     }
 
     .hero-gif-placeholder {
-      border-radius: 14px;
-      border: 1px dashed rgba(255, 235, 255, 0.6);
+      border-radius: 16px;
+      border: 1px dashed rgba(255, 236, 255, 0.7);
       padding: 12px;
       max-width: 260px;
     }
@@ -345,29 +372,28 @@
       margin-bottom: 4px;
     }
 
-    .hero-gif-badge {
+    .hero-gif-pill {
       position: absolute;
-      right: 14px;
+      right: 16px;
       bottom: 14px;
-      padding: 6px 10px;
+      padding: 6px 11px;
       border-radius: var(--radius-pill);
-      background: rgba(12, 11, 24, 0.7);
-      border: 1px solid rgba(255, 182, 240, 0.7);
+      background: rgba(9, 0, 18, 0.7);
+      border: 1px solid rgba(255, 188, 235, 0.85);
       font-size: 11px;
       display: inline-flex;
-      gap: 6px;
       align-items: center;
+      gap: 6px;
     }
 
-    .hero-gif-badge span {
-      display: inline-flex;
+    .hero-gif-pill span {
       width: 10px;
       height: 10px;
       border-radius: 999px;
-      background: radial-gradient(circle at 30% 20%, #fff7ff, #ff2e9f);
+      background: radial-gradient(circle at 30% 20%, #fff7ff, #ff2c9e);
     }
 
-    .hero-visual-footer {
+    .hero-window-bottom {
       margin-top: 10px;
       display: flex;
       justify-content: space-between;
@@ -376,25 +402,25 @@
       color: var(--text-muted);
     }
 
-    .footer-tag-row {
+    .bottom-tags {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
     }
 
-    .footer-tag {
+    .bottom-tag {
       padding: 3px 8px;
       border-radius: var(--radius-pill);
-      background: rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.03);
     }
 
     .section {
-      max-width: 1120px;
+      max-width: 1160px;
       margin: 0 auto;
-      padding: 6px 18px 8px;
+      padding: 8px 18px 10px;
     }
 
-    .section-title-row {
+    .section-head {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
@@ -407,79 +433,81 @@
       font-weight: 800;
     }
 
-    .section-subtitle {
+    .section-sub {
       font-size: 12px;
       color: var(--text-muted);
     }
 
-    .version-grid {
+    .version-card {
+      border-radius: 24px;
+      background:
+        radial-gradient(circle at 0 0, rgba(255, 188, 235, 0.3), transparent 65%),
+        linear-gradient(145deg, #1a0b28, #14061d);
+      padding: 16px 16px 14px;
+      border: 1px solid rgba(255, 188, 235, 0.5);
+      box-shadow: 0 18px 52px rgba(0, 0, 0, 0.75);
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 14px;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 16px;
     }
 
-    @media (max-width: 720px) {
-      .version-grid {
+    @media (max-width: 780px) {
+      .version-card {
         grid-template-columns: minmax(0, 1fr);
       }
     }
 
-    .version-card {
-      border-radius: var(--radius-lg);
-      background: linear-gradient(145deg, rgba(255, 158, 212, 0.18), rgba(25, 11, 41, 0.9));
-      padding: 14px 14px 12px;
-      border: 1px solid rgba(255, 158, 212, 0.35);
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
-    }
-
-    .version-card.alt {
-      background: linear-gradient(145deg, rgba(135, 206, 235, 0.16), rgba(15, 15, 32, 0.94));
-      border-color: rgba(174, 199, 255, 0.4);
-    }
-
-    .version-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .version-title {
-      font-size: 14px;
-      font-weight: 700;
+    .version-main-title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 6px;
     }
 
     .version-pill {
-      padding: 3px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
       border-radius: var(--radius-pill);
+      background: rgba(9, 0, 18, 0.7);
+      border: 1px solid rgba(255, 188, 235, 0.6);
       font-size: 11px;
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.12);
       color: var(--accent);
-    }
-
-    .version-meta {
-      font-size: 11px;
-      color: var(--text-muted);
       margin-bottom: 8px;
     }
 
-    .version-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 10px;
-      margin-top: 6px;
+    .version-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      line-height: 1.7;
     }
 
-    .meta-small {
+    .version-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
       font-size: 11px;
       color: var(--text-muted);
+    }
+
+    .version-right {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .version-specs {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
     }
 
     .about-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.1fr);
       gap: 18px;
       margin-top: 4px;
     }
@@ -492,22 +520,22 @@
 
     .card {
       border-radius: var(--radius-lg);
-      background: rgba(9, 8, 20, 0.92);
+      background: rgba(9, 2, 20, 0.96);
       border: 1px solid var(--border-soft);
       padding: 14px 14px 12px;
-      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+      box-shadow: 0 14px 46px rgba(0, 0, 0, 0.75);
     }
 
     .card h3 {
-      font-size: 14px;
-      margin-bottom: 6px;
+      font-size: 15px;
+      margin-bottom: 7px;
       font-weight: 700;
     }
 
     .card p {
       font-size: 13px;
       color: var(--text-muted);
-      line-height: 1.6;
+      line-height: 1.7;
       margin-bottom: 6px;
     }
 
@@ -529,8 +557,8 @@
       width: 7px;
       height: 7px;
       border-radius: 999px;
-      margin-top: 5px;
-      background: linear-gradient(135deg, #ff9ed4, #ff2e9f);
+      margin-top: 6px;
+      background: linear-gradient(135deg, #ffb7e2, #ff2c9e);
     }
 
     .tag-row {
@@ -540,112 +568,14 @@
       margin-top: 8px;
     }
 
-    .gallery-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      gap: 14px;
-      margin-top: 4px;
-    }
-
-    @media (max-width: 880px) {
-      .gallery-row {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    .gallery-main {
-      border-radius: var(--radius-lg);
-      background: radial-gradient(circle at 10% 0%, rgba(255, 158, 212, 0.22), transparent 60%), #120f1f;
-      border: 1px solid rgba(255, 158, 212, 0.35);
-      padding: 10px;
-      min-height: 160px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    .gallery-main-inner {
-      border-radius: 14px;
-      border: 1px dashed rgba(255, 235, 255, 0.5);
-      padding: 12px;
-      max-width: 320px;
-    }
-
-    .gallery-thumbs {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    .thumb-card {
-      border-radius: 12px;
-      background: rgba(14, 12, 28, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 8px 9px;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
-    .thumb-title {
-      font-size: 12px;
-      margin-bottom: 4px;
-      color: var(--accent);
-    }
-
-    .faq-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-      gap: 18px;
-      margin-top: 4px;
-    }
-
-    @media (max-width: 840px) {
-      .faq-grid {
-        grid-template-columns: minmax(0, 1fr);
-      }
-    }
-
-    details {
-      border-radius: 12px;
-      background: rgba(10, 8, 21, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.04);
-      margin-bottom: 6px;
-      padding: 8px 10px;
-      font-size: 13px;
-      color: var(--text-muted);
-    }
-
-    summary {
-      cursor: pointer;
-      list-style: none;
-      outline: none;
-    }
-
-    summary::-webkit-details-marker { display: none; }
-
-    summary span {
-      color: #fef4ff;
-      font-weight: 600;
-    }
-
-    details[open] {
-      border-color: rgba(255, 158, 212, 0.4);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
-    }
-
-    .faq-body { margin-top: 6px; }
-
     footer {
-      margin-top: 18px;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(6, 5, 15, 0.95);
+      margin-top: 20px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(6, 1, 14, 0.96);
     }
 
     .footer-inner {
-      max-width: 1120px;
+      max-width: 1160px;
       margin: 0 auto;
       padding: 12px 18px 16px;
       font-size: 11px;
@@ -665,7 +595,7 @@
     .footer-chip {
       padding: 4px 9px;
       border-radius: var(--radius-pill);
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
       display: inline-flex;
       align-items: center;
@@ -679,18 +609,18 @@
       <div class="logo">
         <div class="logo-avatar">Z</div>
         <div>
-          <div class="logo-text-main">Zero Two Bongo</div>
-          <div class="logo-text-sub">розовый кликер с анимацией Zero Two</div>
+          <div class="logo-title">Zero Two Bongo</div>
+          <div class="logo-sub">розовый кликер для Windows 10/11</div>
         </div>
       </div>
       <nav class="nav-links">
-        <a href="#versions">Скачать</a>
+        <a href="#download">Скачать</a>
         <a href="#about">Об игре</a>
-        <a href="#gallery">Скриншоты</a>
-        <a href="#faq">FAQ</a>
       </nav>
       <div class="nav-actions">
-        <a href="#versions"><button class="btn btn-primary">⬇ Скачать игру</button></a>
+        <a href="#download">
+          <button class="btn btn-primary">⬇ Скачать</button>
+        </a>
         <a href="https://github.com/qwisixe" target="_blank" rel="noopener noreferrer">
           <button class="btn btn-ghost">GitHub</button>
         </a>
@@ -703,267 +633,166 @@
       <div class="hero-text">
         <div class="hero-pill">
           <div class="hero-pill-dot"></div>
-          Zero Two · Pink Clicker
+          Zero Two · Pink clicker
         </div>
         <h1 class="hero-title">
-          Кликер с Zero Two, бонго‑анимацией и мягким розовым интерфейсом
+          Расслабляющий кликер с Zero Two, мягким розовым светом и бесконечной анимацией бонго
         </h1>
         <p class="hero-subtitle">
-          Собирай очки кликами, улучшай множитель и автокликер, ускоряй анимацию
-          и открывай ALT‑скин Zero Two. Без доната, без онлайна — только ты и розовый вайб.
+          Запусти игру на Windows 10/11, кликай в ритм, собирай очки и прокачивай апгрейды.
+          Никаких аккаунтов и доната — только ты, Zero Two и тихий неоновый интерфейс.
         </p>
 
         <div class="hero-tags">
-          <span class="chip">Windows 7 / 8 / 10 / 11</span>
+          <span class="chip">Windows 10 / 11 · x64</span>
+          <span class="chip">Оффлайн · без регистрации</span>
           <span class="chip">Python · Tkinter</span>
-          <span class="chip">Оффлайн, без регистрации</span>
-          <span class="chip">Защита от чит‑сейвов</span>
+          <span class="chip">Zero Two анимация</span>
         </div>
 
-        <div class="hero-actions">
-          <a href="#versions">
-            <button class="btn btn-primary">⬇ Скачать для Windows</button>
+        <div class="hero-actions" id="download">
+          <a href="https://github.com/qwisixe/ZeroTwoBongo/releases/latest/download/ZeroTwoBongo-win10-11.zip">
+            <button class="btn btn-primary">⬇ Скачать игру для Windows 10/11</button>
           </a>
           <a href="#about">
-            <button class="btn btn-ghost">Узнать об игре</button>
+            <button class="btn btn-ghost">Подробнее об игре</button>
           </a>
         </div>
 
         <div class="hero-meta">
-          <span><span class="meta-dot"></span> Одна кнопка запуска — без установки</span>
-          <span>Сейв и настройки хранятся локально</span>
+          <span><span class="meta-dot"></span> Одна кнопка: распаковать и запустить `.exe`</span>
+          <span>Сейвы и настройки лежат рядом с игрой</span>
         </div>
       </div>
 
       <div class="hero-visual">
         <div class="hero-visual-inner">
-          <div class="hero-visual-header">
-            <div class="hero-visual-dots">
-              <div class="hero-visual-dot red"></div>
-              <div class="hero-visual-dot yellow"></div>
-              <div class="hero-visual-dot green"></div>
+          <div class="hero-window-top">
+            <div class="window-dots">
+              <div class="window-dot red"></div>
+              <div class="window-dot yellow"></div>
+              <div class="window-dot green"></div>
             </div>
-            <span>Zero Two Bongo — preview</span>
+            <span>Zero Two Bongo — live preview</span>
           </div>
-          <div class="hero-gif-box">
+          <div class="hero-gif-frame">
             <div class="hero-gif-placeholder">
-              <strong>Место под арт / GIF с Zero Two</strong>
-              <span>Когда подготовишь картинку или анимацию, просто замени этот блок на &lt;img src="..." /&gt; c нужным стилем.</span>
+              <strong>Место под арт / GIF Zero Two</strong>
+              <span>Когда будет готов арт или анимация, просто замени этот блок на &lt;img src="..." alt="Zero Two Bongo" /&gt;.</span>
             </div>
-            <div class="hero-gif-badge">
+            <div class="hero-gif-pill">
               <span></span>
-              LIVE анимация бонго
+              Бесконечный бонго‑луп
             </div>
           </div>
-          <div class="hero-visual-footer">
-            <div class="footer-tag-row">
-              <div class="footer-tag">Скин: MAIN · ALT</div>
-              <div class="footer-tag">Множитель · Автокликер · Скорость</div>
+          <div class="hero-window-bottom">
+            <div class="bottom-tags">
+              <div class="bottom-tag">Скин: MAIN</div>
+              <div class="bottom-tag">Множитель · Автокликер</div>
             </div>
-            <div class="footer-tag-row">
-              <div class="footer-tag">Save: защищённый файл</div>
+            <div class="bottom-tags">
+              <div class="bottom-tag">Save: защищённый файл</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="section" id="versions">
-      <div class="section-title-row">
-        <div class="section-title">Скачать игру</div>
-        <div class="section-subtitle">
-          Две сборки: для Windows 10/11 и для более старых систем. Ссылки всегда ведут на последний релиз.
+    <section class="section">
+      <div class="section-head">
+        <div class="section-title">Скачать для Windows 10/11</div>
+        <div class="section-sub">
+          Ссылка всегда ведёт на последний релиз игры в GitHub Releases — обновления подхватываются автоматически.
         </div>
       </div>
 
-      <div class="version-grid">
-        <div class="version-card">
-          <div class="version-head">
-            <div class="version-title">Windows 10 / 11</div>
-            <div class="version-pill">Рекомендуемая</div>
+      <div class="version-card">
+        <div>
+          <div class="version-main-title">Zero Two Bongo — Desktop build</div>
+          <div class="version-pill">
+            <span>Windows 10 / 11</span>
           </div>
-          <div class="version-meta">
-            Оптимизированная сборка для современных систем. Если у тебя Windows 10 или 11 — бери эту версию.
+          <div class="version-desc">
+            Эта сборка настроена под современные версии Windows 10/11. Просто скачай архив,
+            распакуй его в удобную папку и запусти исполняемый файл. Игра не меняет реестр,
+            не требует дополнительных установщиков и работает оффлайн.
           </div>
-          <div class="version-footer">
-            <a href="https://github.com/qwisixe/ИМЯ_РЕПОЗИТОРИЯ/releases/latest/download/ZeroTwoBongo-win10-11.zip">
-              <button class="btn btn-primary">⬇ Скачать ZIP</button>
-            </a>
-            <div class="meta-small">
-              Формат: ZIP<br />
-              Распакуй и запусти `ZeroTwoBongo.exe`
-            </div>
+          <div class="version-meta-row">
+            <span>Размер архива зависит от ресурсов и анимаций.</span>
+            <span>Поддерживаются как ноутбуки, так и стационарные ПК.</span>
           </div>
         </div>
-
-        <div class="version-card alt">
-          <div class="version-head">
-            <div class="version-title">Старые Windows (7 / 8 / 8.1)</div>
-            <div class="version-pill">Legacy‑версия</div>
-          </div>
-          <div class="version-meta">
-            Сборка с учётом старых библиотек и систем. Если основная версия не запускается — попробуй эту.
-          </div>
-          <div class="version-footer">
-            <a href="https://github.com/qwisixe/ИМЯ_РЕПОЗИТОРИЯ/releases/latest/download/ZeroTwoBongo-legacy.zip">
-              <button class="btn btn-ghost">⬇ Скачать ZIP</button>
-            </a>
-            <div class="meta-small">
-              Те же функции, но другой набор зависимостей.
-            </div>
+        <div class="version-right">
+          <a href="https://github.com/qwisixe/ZeroTwoBongo/releases/latest/download/ZeroTwoBongo-win10-11.zip">
+            <button class="btn btn-primary">⬇ Скачать ZIP для Windows 10/11</button>
+          </a>
+          <div class="version-specs">
+            <strong>Минимальные требования:</strong><br />
+            ОС: Windows 10 или 11 (64‑bit)<br />
+            ОЗУ: от 2 ГБ<br />
+            Свободное место: от 150 МБ под игру и сохранения<br />
+            Графика: любая интегрированная карта, которая тянет обычный десктоп
           </div>
         </div>
       </div>
     </section>
 
     <section class="section" id="about">
-      <div class="section-title-row">
-        <div class="section-title">О игре</div>
-        <div class="section-subtitle">
-          Лёгкий кликер, вдохновлённый Zero Two и эстетикой розово‑фиолетового интерфейса.
+      <div class="section-head">
+        <div class="section-title">О мире Zero Two Bongo</div>
+        <div class="section-sub">
+          Небольшой домашний проект, который ощущается как уютный розовый мини‑клиент.
         </div>
       </div>
 
       <div class="about-grid">
         <div class="card">
-          <h3>Геймплей и прогресс</h3>
+          <h3>Геймплей: кликер, который не пытается быть серьёзным</h3>
           <p>
-            Zero Two Bongo — расслабленный кликер: кликай мышью или клавишами,
-            набирай очки, покупай улучшения и наблюдай, как Zero Two бесконечно отбивает бонго.
+            Zero Two Bongo — это медитативный кликер: ты кликаешь по экрану или жмёшь назначенные клавиши,
+            смотришь на анимацию Zero Two и постепенно увеличиваешь свой доход за клик.
           </p>
           <ul class="feature-list">
             <li>
               <div class="feature-dot"></div>
-              <div>Магазин улучшений: множитель, автокликер, ускорение анимации.</div>
+              <div>Простая прогрессия: копи очки, покупай апгрейды и наблюдай, как счёт растёт быстрее.</div>
             </li>
             <li>
               <div class="feature-dot"></div>
-              <div>Инвентарь скинов: базовый MAIN и разблокируемый ALT‑скин.</div>
+              <div>Акцент на атмосфере: мягкий розовый UI, неоновый фон и минимум лишних кнопок.</div>
             </li>
             <li>
               <div class="feature-dot"></div>
-              <div>Оффлайн‑игра: всё работает без интернета и регистрации.</div>
-            </li>
-            <li>
-              <div class="feature-dot"></div>
-              <div>Сохранения и настройки лежат рядом с игрой — можно переносить прогресс между ПК.</div>
+              <div>Оффлайн‑режим: игра не просит интернет и не требует регистрации.</div>
             </li>
           </ul>
           <div class="tag-row">
-            <span class="chip">Idle / Clicker</span>
+            <span class="chip">Casual</span>
             <span class="chip">Singleplayer</span>
-            <span class="chip">Zero Two vibe</span>
+            <span class="chip">Zero Two mood</span>
           </div>
         </div>
 
         <div class="card">
-          <h3>Системные требования и защита сейвов</h3>
+          <h3>Техническая часть и сохранения</h3>
           <p>
-            Игра написана на Python и упакована в удобный `.exe`. Работает даже на слабых ноутбуках,
-            главное — чтобы система была не древнее Windows 7.
+            Игра написана на Python и упакована в `.exe`, который комфортно чувствует себя на Windows 10/11.
+            Все данные — только у тебя на диске, рядом с самой игрой.
           </p>
           <ul class="feature-list">
             <li>
               <div class="feature-dot"></div>
-              <div>ОС: Windows 7 / 8 / 8.1 / 10 / 11 (x64).</div>
+              <div>Файл сохранения лежит в папке с игрой и хранит твой прогресс.</div>
             </li>
             <li>
               <div class="feature-dot"></div>
-              <div>ОЗУ: от 2 ГБ, места на диске нужно совсем немного.</div>
+              <div>Настройки окна и прочие параметры тоже рядом — игру легко переносить на другой ПК.</div>
             </li>
             <li>
               <div class="feature-dot"></div>
-              <div><strong>Защита сейва:</strong> прогресс хранится в одном файле с проверкой целостности, грубое редактирование ломает подпись, и игра такой файл не принимает.</div>
+              <div>Сборка ориентирована на стабильную работу под современными версиями Windows.</div>
             </li>
           </ul>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="gallery">
-      <div class="section-title-row">
-        <div class="section-title">Скриншоты и арт</div>
-        <div class="section-subtitle">
-          Когда будут реальные скриншоты, их можно будет вставить сюда вместо заглушек.
-        </div>
-      </div>
-
-      <div class="gallery-row">
-        <div class="gallery-main">
-          <div class="gallery-main-inner">
-            <strong>Главный скриншот / арт</strong>
-            <p>
-              Здесь можно разместить полноразмерный скриншот игры с интерфейсом в розовом стиле
-              и Zero Two. Достаточно заменить этот блок на &lt;img src="..." alt="Zero Two Bongo UI" /&gt;.
-            </p>
-          </div>
-        </div>
-        <div class="gallery-thumbs">
-          <div class="thumb-card">
-            <div class="thumb-title">Магазин улучшений</div>
-            <div>Отдельный экран с множителем, автокликером и ускорением анимации.</div>
-          </div>
-          <div class="thumb-card">
-            <div class="thumb-title">Смена скина</div>
-            <div>Инвентарь, где можно переключить MAIN/ALT‑скин Zero Two.</div>
-          </div>
-          <div class="thumb-card">
-            <div class="thumb-title">Окно настроек</div>
-            <div>Разрешение, звук и другие параметры хранятся в `settings.txt`.</div>
-          </div>
-          <div class="thumb-card">
-            <div class="thumb-title">Экран сохранения</div>
-            <div>Ручное сохранение прогресса в отдельный файл с защитой от читов.</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="section" id="faq">
-      <div class="section-title-row">
-        <div class="section-title">Частые вопросы</div>
-        <div class="section-subtitle">Коротко о запуске, сохранениях и релизах.</div>
-      </div>
-
-      <div class="faq-grid">
-        <div>
-          <details open>
-            <summary><span>Как запустить игру?</span></summary>
-            <div class="faq-body">
-              Распакуй скачанный ZIP‑архив в любую папку и запусти `ZeroTwoBongo.exe`. Установка не нужна,
-              права администратора тоже.
-            </div>
-          </details>
-          <details>
-            <summary><span>Где хранятся сохранения?</span></summary>
-            <div class="faq-body">
-              В папке с игрой лежит файл `savegame.txt`. В нём хранится твой прогресс, а игру не нужно
-              запускать от имени администратора, чтобы сохраняться.
-            </div>
-          </details>
-          <details>
-            <summary><span>Можно ли редактировать сейв?</span></summary>
-            <div class="faq-body">
-              Файл подписан контрольной суммой. Если попытаться грубо «накрутить» себе очки вручную,
-              подпись сломается, и игра просто не подгрузит такой сейв.
-            </div>
-          </details>
-        </div>
-        <div>
-          <details>
-            <summary><span>Сайт всегда выдаёт последнюю версию?</span></summary>
-            <div class="faq-body">
-              Да. Ссылки ведут на `/releases/latest/download/...` в GitHub, поэтому при каждом новом релизе
-              с теми же именами файлов сайт автоматически отдаёт свежие сборки, без правки HTML.
-            </div>
-          </details>
-          <details>
-            <summary><span>У меня старый компьютер, какую версию брать?</span></summary>
-            <div class="faq-body">
-              Если у тебя Windows 7, 8 или очень старое железо — начни с версии «Старые Windows».
-              Если всё ок, можно пользоваться обычной сборкой для Windows 10/11.
-            </div>
-          </details>
         </div>
       </div>
     </section>
@@ -972,7 +801,7 @@
   <footer>
     <div class="footer-inner">
       <div>
-        Zero Two Bongo — фанатский розовый кликер, вдохновлённый Zero Two.  
+        Zero Two Bongo — фанатский розовый кликер.  
         Все права на оригинальных персонажей принадлежат их правообладателям.
       </div>
       <div class="footer-links">
