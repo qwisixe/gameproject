@@ -255,7 +255,7 @@ class ZeroTwoGame(tk.Tk):
 
         speed_factor = self.anim_speed_factor
         if alt_mode:
-            speed_factor *= 1.5
+            speed_factor *= 1.5  # ALT чуть быстрее
 
         self.base_delay = max(0.02, base_delay / speed_factor)
 
@@ -301,7 +301,7 @@ class ZeroTwoGame(tk.Tk):
             pass
 
     def load_upgrades(self):
-        # добавили alt_unlocked как отдельный флаг [web:132][web:184]
+        # множитель, автоклик, текущий скин, скорость анимации, флаг "ALT куплен" [web:132][web:184]
         default = (1.0, 0, False, 1.0, False)
         if os.path.exists(UPGRADE_FILE):
             try:
@@ -656,7 +656,6 @@ class ZeroTwoGame(tk.Tk):
     def set_skin(self, inv_window, info_label, use_alt):
         # выбор скина без затрат очков (если ALT куплен)
         if use_alt and not self.alt_unlocked:
-            # защита, на всякий случай
             inv_window.destroy()
             return
 
