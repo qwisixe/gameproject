@@ -400,6 +400,7 @@ class ZeroTwoGame(tk.Tk):
 
     def load_upgrades(self):
         # множитель, автоклик, текущий скин, скорость анимации, флаг "ALT куплен"
+        # MAIN по умолчанию, ALT по умолчанию не куплен
         default = (1.0, 0, False, 1.0, False)
         if os.path.exists(UPGRADE_FILE):
             try:
@@ -412,6 +413,11 @@ class ZeroTwoGame(tk.Tk):
                         use_alt = parts[2] == "1"
                         anim_speed = float(parts[3])
                         alt_unlocked = parts[4] == "1" if len(parts) > 4 else False
+
+                        # защита: если ALT не куплен, насильно включаем MAIN
+                        if not alt_unlocked:
+                            use_alt = False
+
                         return mult, auto_ms, use_alt, anim_speed, alt_unlocked
             except Exception:
                 return default
@@ -432,7 +438,7 @@ class ZeroTwoGame(tk.Tk):
     # ===== ручная система сохранений =====
 
     def save_game_manual(self):
-        # сохраняем всё важное состояние одной JSON-структурой [web:225][web:228]
+        # сохраняем всё важное состояние одной JSON-структурой
         data = {
             "score": self.score,
             "multiplier": self.multiplier,
@@ -447,7 +453,6 @@ class ZeroTwoGame(tk.Tk):
         except Exception:
             pass
 
-        # маленькое уведомление внизу панели
         info = tk.Label(
             self.panel,
             text="Игра сохранена",
@@ -456,7 +461,6 @@ class ZeroTwoGame(tk.Tk):
             font=("Arial", 10, "bold"),
         )
         info.pack(side=tk.LEFT, padx=5)
-        # убрать уведомление через пару секунд
         self.after(2000, info.destroy)
 
     def load_game_manual(self):
@@ -471,6 +475,10 @@ class ZeroTwoGame(tk.Tk):
                 self.use_alt_skin = bool(data.get("use_alt_skin", self.use_alt_skin))
                 self.anim_speed_factor = float(data.get("anim_speed_factor", self.anim_speed_factor))
                 self.alt_unlocked = bool(data.get("alt_unlocked", self.alt_unlocked))
+
+                # защита: если ALT не куплен, не даём его включить
+                if not self.alt_unlocked:
+                    self.use_alt_skin = False
             except Exception:
                 pass
 
@@ -861,7 +869,6 @@ class ZeroTwoGame(tk.Tk):
         )
         title.pack(pady=10)
 
-        # варианты разрешений
         resolutions = [
             ("640 x 640", 640, 640),
             ("800 x 600", 800, 600),
@@ -900,7 +907,6 @@ class ZeroTwoGame(tk.Tk):
         close_btn.pack(pady=10)
 
     def apply_resolution(self, settings_win, width, height):
-        # применяем новое разрешение и сохраняем в settings.txt [web:106][web:102]
         self.window_width = width
         self.window_height = height
         self.set_geometry(width, height)
