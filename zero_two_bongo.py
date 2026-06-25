@@ -4,6 +4,8 @@ from itertools import count
 import os
 import json
 import hashlib
+import random
+import time
 
 MAIN_GIF = "zero_two.gif"
 ALT_GIF = "zero_two_alt.gif"
@@ -17,6 +19,8 @@ SETTINGS_FILE = "settings.txt"
 
 # "секрет" для подписи сохранения (не палим пользователям)
 SAVE_SECRET = "zero_two_super_secret_salt_2026"
+SAVE_SCHEMA_VERSION = 2
+STATUS_DISPLAY_MS = 2800
 
 # Anti-cheat лимиты (подбирай под баланс)
 MAX_SCORE = 10_000_000
@@ -25,17 +29,34 @@ MAX_ANIM_SPEED = 20.0
 MIN_ANIM_SPEED = 0.5
 MIN_AUTO_INTERVAL = 100  # мс
 
+THEMES = {
+    "pink": {
+        "bg": "#ffb6c1",
+        "panel": "#ff69b4",
+        "button_bg": "#ff1493",
+        "button_active": "#ff85c2",
+        "text": "#1b1b2f",
+    },
+    "neon": {
+        "bg": "#0f172a",
+        "panel": "#0ea5e9",
+        "button_bg": "#14b8a6",
+        "button_active": "#38bdf8",
+        "text": "#f8fafc",
+    },
+}
+
 
 class ZeroTwoGame(tk.Tk):
     def __init__(self):
         super().__init__()
 
         # настройки окна по умолчанию
-        self.default_width = 640
-        self.default_height = 640
+        self.default_width = 720
+        self.default_height = 720
 
-        # загрузка настроек (разрешение)
-        self.window_width, self.window_height = self.load_settings()
+        # загрузка настроек (разрешение, тема)
+        self.window_width, self.window_height, self.active_theme = self.load_settings()
 
         self.title("Zero Two Bongo")
         self.set_geometry(self.window_width, self.window_height)
@@ -47,6 +68,25 @@ class ZeroTwoGame(tk.Tk):
         self.use_alt_skin = False
         self.anim_speed_factor = 1.0
         self.alt_unlocked = False
+        self.unlocked_upgrades = {
+            "multiplier": 0,
+            "autoclick": 0,
+            "animation": 0,
+            "skins": 0,
+            "theme": 0,
+        }
+        self.quest_progress = {
+            "hits": 0,
+            "shops_visited": 0,
+            "skins_unlocked": 0,
+            "themes_unlocked": 0,
+        }
+        self.status_message = ""
+        self.status_after_id = None
+        self.combo_streak = 0
+        self.last_hit_time = 0.0
+        self.total_hits = 0
+        self.last_bonus_time = 0.0
 
         self.current_frame = None
 
@@ -65,31 +105,83 @@ class ZeroTwoGame(tk.Tk):
 
         self.create_start_screen()
 
+    # ===== темы и стиль =====
+
+    def theme_color(self, role):
+        return THEMES.get(self.active_theme, THEMES["pink"]).get(role, "#ffffff")
+
+    def apply_theme(self, widget, role, **kwargs):
+        widget.configure(bg=self.theme_color(role), fg=self.theme_color("text"), **kwargs)
+
+    def make_button(self, parent, text, command, width=None, height=None):
+        btn = tk.Button(
+            parent,
+            text=text,
+            command=command,
+            fg="white",
+            bg=self.theme_color("button_bg"),
+            activebackground=self.theme_color("button_active"),
+            activeforeground=self.theme_color("text"),
+            relief="raised",
+            bd=2,
+            font=("Arial", 12, "bold"),
+            cursor="hand2",
+            padx=10,
+            pady=6,
+            width=width,
+            height=height,
+        )
+        return btn
+
+    def show_status(self, message, duration=STATUS_DISPLAY_MS):
+        if self.status_after_id is not None:
+            self.after_cancel(self.status_after_id)
+            self.status_after_id = None
+        self.status_message = message
+        if hasattr(self, "status_label"):
+            self.status_label.config(text=self.status_message)
+        self.status_after_id = self.after(duration, self.clear_status)
+
+    def clear_status(self):
+        self.status_message = ""
+        if hasattr(self, "status_label"):
+            self.status_label.config(text=self.status_message)
+        self.status_after_id = None
+
     # ===== работа с окном / настройками =====
 
     def set_geometry(self, w, h):
         self.geometry(f"{w}x{h}+100+100")
         self.minsize(w, h)
         self.maxsize(w, h)
-        self.configure(bg="#ffb6c1")
+        bg_color = self.theme_color("bg") if hasattr(self, "active_theme") else "#ffb6c1"
+        self.configure(bg=bg_color)
 
     def load_settings(self):
+        theme = "pink"
         if os.path.exists(SETTINGS_FILE):
             try:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     w = int(data.get("width", self.default_width))
                     h = int(data.get("height", self.default_height))
-                    return w, h
+                    theme = str(data.get("theme", theme))
+                    if theme not in THEMES:
+                        theme = "pink"
+                    return w, h, theme
             except Exception:
-                return self.default_width, self.default_height
-        return self.default_width, self.default_height
+                return self.default_width, self.default_height, theme
+        return self.default_width, self.default_height, theme
 
     def save_settings(self):
-        data = {"width": self.window_width, "height": self.window_height}
+        data = {
+            "width": self.window_width,
+            "height": self.window_height,
+            "theme": self.active_theme,
+        }
         try:
             with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
-                json.dump(data, f)
+                json.dump(data, f, ensure_ascii=False, indent=2)
         except Exception:
             pass
 
@@ -129,95 +221,61 @@ class ZeroTwoGame(tk.Tk):
     # ===== стартовый экран =====
 
     def create_start_screen(self):
-        self._switch_frame(bg="#ffb6c1")
+        self._switch_frame(bg=self.theme_color("bg"))
 
         title = tk.Label(
             self.current_frame,
             text="Zero Two Bongo",
-            fg="#1b1b2f",
-            bg="#ffb6c1",
-            font=("Arial", 26, "bold"),
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
+            font=("Arial", 28, "bold"),
         )
-        title.pack(pady=40)
+        title.pack(pady=(40, 20))
 
-        play_button = tk.Button(
+        subtitle = tk.Label(
             self.current_frame,
-            text="Играть",
-            command=self.start_game,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=3,
-            font=("Arial", 18, "bold"),
-            cursor="hand2",
-            padx=40,
-            pady=10,
+            text="Нажимай, прокачивай и открывай новые скины!",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
+            font=("Arial", 14),
         )
-        play_button.pack(pady=10)
+        subtitle.pack(pady=(0, 30))
 
-        dev_button = tk.Button(
-            self.current_frame,
-            text="Разработчики",
-            command=self.show_devs,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=3,
-            font=("Arial", 18, "bold"),
-            cursor="hand2",
-            padx=40,
-            pady=10,
-        )
-        dev_button.pack(pady=10)
+        menu_frame = tk.Frame(self.current_frame, bg=self.theme_color("bg"))
+        menu_frame.pack()
 
-        exit_button = tk.Button(
-            self.current_frame,
-            text="Выход",
-            command=self.quit_game,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=3,
-            font=("Arial", 18, "bold"),
-            cursor="hand2",
-            padx=40,
-            pady=10,
-        )
-        exit_button.pack(pady=10)
+        play_button = self.make_button(menu_frame, "Играть", self.start_game, width=18)
+        play_button.pack(pady=8)
+
+        shop_button = self.make_button(menu_frame, "Магазин", self.open_shop, width=18)
+        shop_button.pack(pady=8)
+
+        quest_button = self.make_button(menu_frame, "Задания", self.open_achievements, width=18)
+        quest_button.pack(pady=8)
+
+        settings_button = self.make_button(menu_frame, "Настройки", self.open_settings, width=18)
+        settings_button.pack(pady=8)
+
+        themes_button = self.make_button(menu_frame, "Темы", self.open_theme_picker, width=18)
+        themes_button.pack(pady=8)
+
+        exit_button = self.make_button(menu_frame, "Выход", self.quit_game, width=18)
+        exit_button.pack(pady=8)
 
     def show_devs(self):
-        self._switch_frame(bg="#ffb6c1")
+        self._switch_frame(bg=self.theme_color("bg"))
 
         label = tk.Label(
             self.current_frame,
-            text="Главный разработчик - qwisixe",
-            fg="red",
-            bg="#ffb6c1",
+            text="Главный разработчик - qwisixe\nВерсия игры: 2.0",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
             font=("Arial", 22, "bold"),
+            justify="center",
         )
         label.pack(expand=True)
 
-        back_button = tk.Button(
-            self.current_frame,
-            text="Назад",
-            command=self.create_start_screen,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=3,
-            font=("Arial", 14, "bold"),
-            cursor="hand2",
-            padx=20,
-            pady=5,
-        )
+        back_button = self.make_button(self.current_frame, "Назад", self.create_start_screen, width=16)
         back_button.pack(pady=20)
 
     def quit_game(self):
@@ -230,13 +288,13 @@ class ZeroTwoGame(tk.Tk):
         self.stop_animation()
         self.auto_click_running = False
 
-        self._switch_frame(bg="#1b1b2f")
+        self._switch_frame(bg=self.theme_color("bg"))
 
-        self.image_label = tk.Label(self.current_frame, bg="#1b1b2f")
+        self.image_label = tk.Label(self.current_frame, bg=self.theme_color("bg"))
         self.image_label.pack(expand=True, fill=tk.BOTH)
 
         # нижняя панель
-        self.panel = tk.Frame(self.current_frame, bg="#ff69b4", height=80)
+        self.panel = tk.Frame(self.current_frame, bg=self.theme_color("panel"), height=100)
         self.panel.pack(fill=tk.X, side=tk.BOTTOM)
 
         # загрузка кадров и запуск анимации
@@ -249,101 +307,38 @@ class ZeroTwoGame(tk.Tk):
         self.score_label = tk.Label(
             self.panel,
             text=self.score_text(),
-            fg="white",
-            bg="#ff69b4",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("panel"),
             font=("Arial", 14, "bold"),
         )
         self.score_label.pack(side=tk.LEFT, padx=10)
 
-        # Shop
-        self.shop_button = tk.Button(
+        self.status_label = tk.Label(
             self.panel,
-            text="Shop",
-            command=self.open_shop,
-            fg="#1b1b2f",
-            bg="#ffc0cb",
-            activebackground="#ffdde8",
-            activeforeground="#1b1b2f",
-            relief="ridge",
-            bd=2,
-            font=("Arial", 12, "bold"),
-            cursor="hand2",
-            padx=10,
-            pady=3,
+            text=self.status_message,
+            fg=self.theme_color("text"),
+            bg=self.theme_color("panel"),
+            font=("Arial", 11),
         )
-        self.shop_button.pack(side=tk.LEFT, padx=5)
+        self.status_label.pack(side=tk.LEFT, padx=10)
 
-        # кнопка Сохранить
-        self.save_button = tk.Button(
-            self.panel,
-            text="Сохранить",
-            command=self.save_game_manual,
-            fg="#1b1b2f",
-            bg="#ffe4f2",
-            activebackground="#ffd0ec",
-            activeforeground="#1b1b2f",
-            relief="ridge",
-            bd=2,
-            font=("Arial", 11, "bold"),
-            cursor="hand2",
-            padx=8,
-            pady=3,
-        )
-        self.save_button.pack(side=tk.LEFT, padx=5)
+        button_frame = tk.Frame(self.panel, bg=self.theme_color("panel"))
+        button_frame.pack(side=tk.RIGHT, padx=5)
 
-        # кнопка Настройки (⚙)
-        self.settings_button = tk.Button(
-            self.panel,
-            text="⚙",
-            command=self.open_settings,
-            fg="#1b1b2f",
-            bg="#ffc0cb",
-            activebackground="#ffdde8",
-            activeforeground="#1b1b2f",
-            relief="ridge",
-            bd=2,
-            font=("Arial", 12, "bold"),
-            cursor="hand2",
-            padx=6,
-            pady=2,
-            width=3,
-        )
-        self.settings_button.pack(side=tk.LEFT, padx=5)
+        self.save_button = self.make_button(button_frame, "Сохранить", self.save_game_manual, width=10)
+        self.save_button.pack(side=tk.LEFT, padx=3)
 
-        # Меню
-        self.menu_button = tk.Button(
-            self.panel,
-            text="Меню",
-            command=self.back_to_menu,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=2,
-            font=("Arial", 12, "bold"),
-            cursor="hand2",
-            padx=10,
-            pady=3,
-        )
-        self.menu_button.pack(side=tk.LEFT, padx=5)
+        self.settings_button = self.make_button(button_frame, "⚙", self.open_settings, width=4)
+        self.settings_button.pack(side=tk.LEFT, padx=3)
 
-        # Hit
-        self.hit_button = tk.Button(
-            self.panel,
-            text="Hit!",
-            command=self.on_hit,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=3,
-            font=("Arial", 14, "bold"),
-            cursor="hand2",
-            padx=20,
-            pady=5,
-        )
+        self.menu_button = self.make_button(button_frame, "Меню", self.back_to_menu, width=10)
+        self.menu_button.pack(side=tk.LEFT, padx=3)
+
+        self.shop_button = self.make_button(button_frame, "Магазин", self.open_shop, width=10)
+        self.shop_button.pack(side=tk.LEFT, padx=3)
+
+        self.hit_button = self.make_button(self.panel, "Hit!", self.on_hit, width=10)
+        self.hit_button.config(font=("Arial", 14, "bold"), bd=3)
         self.hit_button.pack(side=tk.RIGHT, padx=10)
 
         self.bind("<KeyPress>", self.on_key_press)
@@ -456,11 +451,51 @@ class ZeroTwoGame(tk.Tk):
         elif self.auto_interval_ms != 0 and self.auto_interval_ms < MIN_AUTO_INTERVAL:
             self.auto_interval_ms = MIN_AUTO_INTERVAL
 
+        if self.active_theme not in THEMES:
+            self.active_theme = "pink"
+
         # если ALT не куплен, насильно MAIN
         if not self.alt_unlocked:
             self.use_alt_skin = False
 
-    # ===== сохранение / загрузка (только savegame.txt) =====
+    def record_hit(self):
+        now = time.monotonic()
+        if now - self.last_hit_time <= 1.2:
+            self.combo_streak += 1
+        else:
+            self.combo_streak = 1
+        self.last_hit_time = now
+        self.total_hits += 1
+        self.quest_progress["hits"] = self.total_hits
+
+        self.add_score(1, source="hit")
+
+        if self.combo_streak >= 5 and now - self.last_bonus_time >= 5:
+            bonus = 2 * self.combo_streak
+            self.add_score(bonus, source="combo")
+            self.show_status(f"Combo x{self.combo_streak}! +{bonus} Score")
+            self.last_bonus_time = now
+
+        self.check_achievements()
+
+        if random.random() < 0.08:
+            bonus = random.randint(5, 15)
+            self.add_score(bonus, source="event")
+            self.show_status(f"Случайный бонус: +{bonus} Score")
+
+    def check_achievements(self):
+        if self.total_hits >= 1 and not self.quest_progress.get("first_hit", False):
+            self.quest_progress["first_hit"] = True
+            self.show_status("Достижение: Первый удар!", duration=STATUS_DISPLAY_MS)
+        if self.total_hits >= 100 and not self.quest_progress.get("century_hits", False):
+            self.quest_progress["century_hits"] = True
+            self.show_status("Достижение: 100 ударов!", duration=STATUS_DISPLAY_MS)
+        if self.score >= 1000 and not self.quest_progress.get("silver_score", False):
+            self.quest_progress["silver_score"] = True
+            self.show_status("Достижение: 1000 Score!", duration=STATUS_DISPLAY_MS)
+        if self.alt_unlocked and not self.quest_progress.get("alt_skin", False):
+            self.quest_progress["alt_skin"] = True
+            self.show_status("Достижение: ALT Skin разблокирован!", duration=STATUS_DISPLAY_MS)
 
     def save_game_manual(self):
         # сохраняем состояние
@@ -471,12 +506,19 @@ class ZeroTwoGame(tk.Tk):
             "use_alt_skin": self.use_alt_skin,
             "anim_speed_factor": self.anim_speed_factor,
             "alt_unlocked": self.alt_unlocked,
+            "active_theme": self.active_theme,
+            "unlocked_upgrades": self.unlocked_upgrades,
+            "quest_progress": self.quest_progress,
+            "combo_streak": self.combo_streak,
+            "total_hits": self.total_hits,
+            "last_bonus_time": self.last_bonus_time,
         }
 
         try:
             payload_str = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
             checksum = self.make_checksum(payload_str)
             wrapper = {
+                "version": SAVE_SCHEMA_VERSION,
                 "data": payload,
                 "checksum": checksum,
             }
@@ -490,8 +532,8 @@ class ZeroTwoGame(tk.Tk):
             info = tk.Label(
                 self.panel,
                 text="Игра сохранена",
-                fg="#1b1b2f",
-                bg="#ff69b4",
+                fg=self.theme_color("text"),
+                bg=self.theme_color("panel"),
                 font=("Arial", 10, "bold"),
             )
             info.pack(side=tk.LEFT, padx=5)
@@ -510,7 +552,6 @@ class ZeroTwoGame(tk.Tk):
             payload_str = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
             checksum_calc = self.make_checksum(payload_str)
 
-            # если подпись не совпала — считаем, что файл читерский/битый, не грузим [web:239][web:240][web:246]
             if checksum_file != checksum_calc:
                 return
 
@@ -520,18 +561,59 @@ class ZeroTwoGame(tk.Tk):
             self.use_alt_skin = bool(payload.get("use_alt_skin", self.use_alt_skin))
             self.anim_speed_factor = float(payload.get("anim_speed_factor", self.anim_speed_factor))
             self.alt_unlocked = bool(payload.get("alt_unlocked", self.alt_unlocked))
+            self.active_theme = str(payload.get("active_theme", self.active_theme))
+            if self.active_theme not in THEMES:
+                self.active_theme = "pink"
 
-            # применяем anti-cheat лимиты
+            self.unlocked_upgrades = payload.get("unlocked_upgrades", self.unlocked_upgrades)
+            if not isinstance(self.unlocked_upgrades, dict):
+                self.unlocked_upgrades = {
+                    "multiplier": 0,
+                    "autoclick": 0,
+                    "animation": 0,
+                    "skins": 0,
+                    "theme": 0,
+                }
+
+            self.quest_progress = payload.get("quest_progress", self.quest_progress)
+            if not isinstance(self.quest_progress, dict):
+                self.quest_progress = {
+                    "hits": 0,
+                    "shops_visited": 0,
+                    "skins_unlocked": 0,
+                    "themes_unlocked": 0,
+                }
+
+            self.combo_streak = int(payload.get("combo_streak", self.combo_streak))
+            self.total_hits = int(payload.get("total_hits", self.total_hits))
+            self.last_bonus_time = float(payload.get("last_bonus_time", self.last_bonus_time))
+
             self.apply_anti_cheat_limits()
 
         except Exception:
-            # при любой ошибке грузим дефолт
             self.score = 0
             self.multiplier = 1.0
             self.auto_interval_ms = 0
             self.use_alt_skin = False
             self.anim_speed_factor = 1.0
             self.alt_unlocked = False
+            self.active_theme = "pink"
+            self.unlocked_upgrades = {
+                "multiplier": 0,
+                "autoclick": 0,
+                "animation": 0,
+                "skins": 0,
+                "theme": 0,
+            }
+            self.quest_progress = {
+                "hits": 0,
+                "shops_visited": 0,
+                "skins_unlocked": 0,
+                "themes_unlocked": 0,
+            }
+            self.combo_streak = 0
+            self.total_hits = 0
+            self.last_bonus_time = 0.0
 
     # ===== текст счёта =====
 
@@ -541,19 +623,25 @@ class ZeroTwoGame(tk.Tk):
     def update_score_label(self):
         self.score_label.config(text=self.score_text())
 
-    def add_score(self, amount):
+    def add_score(self, amount, source=None):
         gained = int(amount * self.multiplier)
         self.score += gained
         self.apply_anti_cheat_limits()
         self.update_score_label()
+        if source == "hit":
+            self.show_status(f"Hit! +{gained}")
+        elif source == "combo":
+            self.show_status(f"Combo bonus +{gained}")
+        elif source == "event":
+            self.show_status(f"Случайный бонус +{gained}")
 
     # ===== события =====
 
     def on_hit(self):
-        self.add_score(1)
+        self.record_hit()
 
     def on_key_press(self, event):
-        self.add_score(1)
+        self.record_hit()
 
     def on_close(self):
         # при выходе сохраняем только защищённый savegame + настройки
@@ -639,64 +727,19 @@ class ZeroTwoGame(tk.Tk):
         )
         btn_auto.pack(pady=5)
 
-        btn_skin = tk.Button(
-            shop,
-            text="Купить ALT скин (200 Score)",
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=2,
-            font=("Arial", 11, "bold"),
-            cursor="hand2",
-            command=lambda: self.buy_skin(shop, info, 200),
-        )
+        btn_skin = self.make_button(shop, "Купить ALT скин (200 Score)", lambda: self.buy_skin(shop, info, 200), width=26)
         btn_skin.pack(pady=5)
 
-        btn_inventory = tk.Button(
-            shop,
-            text="Инвентарь скинов",
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=2,
-            font=("Arial", 11, "bold"),
-            cursor="hand2",
-            command=lambda: self.open_skin_inventory(shop, info),
-        )
+        btn_inventory = self.make_button(shop, "Инвентарь скинов", lambda: self.open_skin_inventory(shop, info), width=26)
         btn_inventory.pack(pady=5)
 
-        btn_anim = tk.Button(
-            shop,
-            text="Ускорить анимацию (x+0.5) (120 Score)",
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=2,
-            font=("Arial", 11, "bold"),
-            cursor="hand2",
-            command=lambda: self.buy_anim_speed(shop, info, 120),
-        )
+        btn_theme = self.make_button(shop, "Купить НЕОН тему (500 Score)", lambda: self.buy_theme(shop, info, 500), width=26)
+        btn_theme.pack(pady=5)
+
+        btn_anim = self.make_button(shop, "Ускорить анимацию (x+0.5) (120 Score)", lambda: self.buy_anim_speed(shop, info, 120), width=26)
         btn_anim.pack(pady=5)
 
-        close_btn = tk.Button(
-            shop,
-            text="Закрыть",
-            command=shop.destroy,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=2,
-            font=("Arial", 11, "bold"),
-            cursor="hand2",
-        )
+        close_btn = self.make_button(shop, "Закрыть", shop.destroy, width=26)
         close_btn.pack(pady=10)
 
     def shop_info_text(self):
@@ -705,8 +748,9 @@ class ZeroTwoGame(tk.Tk):
             f"Множитель: x{self.multiplier:.1f}\n"
             f"Автокликер: "
             f"{'ON (' + str(self.auto_interval_ms) + ' ms)' if self.auto_interval_ms else 'OFF'}\n"
-            f"Скин сейчас: {'ALT' if self.use_alt_skin else 'MAIN'}\n"
+            f"Скин: {'ALT' if self.use_alt_skin else 'MAIN'}\n"
             f"ALT разблокирован: {'YES' if self.alt_unlocked else 'NO'}\n"
+            f"Тема: {self.active_theme.upper()}\n"
             f"Скорость анимации: x{self.anim_speed_factor:.1f}"
         )
 
@@ -874,6 +918,7 @@ class ZeroTwoGame(tk.Tk):
         if self.score >= cost:
             self.score -= cost
             self.anim_speed_factor += 0.5
+            self.unlocked_upgrades["animation"] += 1
             self.apply_anti_cheat_limits()
             self.restart_animation()
             self.update_score_label()
@@ -882,8 +927,8 @@ class ZeroTwoGame(tk.Tk):
             msg = tk.Label(
                 shop_window,
                 text=f"Анимация ускорена! x{self.anim_speed_factor:.1f}.",
-                fg="#1b1b2f",
-                bg="#ffb6c1",
+                fg=self.theme_color("text"),
+                bg=self.theme_color("bg"),
                 font=("Arial", 11),
             )
             msg.pack(pady=3)
@@ -894,28 +939,115 @@ class ZeroTwoGame(tk.Tk):
         msg = tk.Label(
             shop_window,
             text="Недостаточно Score.",
-            fg="#1b1b2f",
-            bg="#ffb6c1",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
             font=("Arial", 11),
         )
         msg.pack(pady=3)
+
+    def buy_theme(self, shop_window, info_label, cost):
+        if self.score >= cost:
+            self.score -= cost
+            self.active_theme = "neon"
+            self.unlocked_upgrades["theme"] += 1
+            self.quest_progress["themes_unlocked"] = self.unlocked_upgrades["theme"]
+            self.apply_anti_cheat_limits()
+            self.save_game_manual()
+            self.update_score_label()
+            self.refresh_shop_info(info_label)
+            self.show_status("Тема НЕОН куплена и применена!")
+        else:
+            self._not_enough_score(shop_window)
+
+    def open_achievements(self):
+        ach_win = tk.Toplevel(self)
+        ach_win.title("Задания")
+        ach_win.geometry("360x340+760+140")
+        ach_win.configure(bg=self.theme_color("bg"))
+
+        title = tk.Label(
+            ach_win,
+            text="Задания и достижения",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
+            font=("Arial", 16, "bold"),
+        )
+        title.pack(pady=10)
+
+        achievements = [
+            ("Первый удар", self.quest_progress.get("first_hit", False)),
+            ("100 ударов", self.quest_progress.get("century_hits", False)),
+            ("1000 Score", self.quest_progress.get("silver_score", False)),
+            ("ALT Skin", self.quest_progress.get("alt_skin", False)),
+        ]
+
+        for text, unlocked in achievements:
+            label = tk.Label(
+                ach_win,
+                text=f"{text}: {'✓' if unlocked else '✗'}",
+                fg=self.theme_color("text"),
+                bg=self.theme_color("bg"),
+                font=("Arial", 12),
+                anchor="w",
+                justify="left",
+            )
+            label.pack(fill=tk.X, padx=16, pady=4)
+
+        close_btn = self.make_button(ach_win, "Закрыть", ach_win.destroy, width=24)
+        close_btn.pack(pady=16)
+
+    def open_theme_picker(self):
+        theme_win = tk.Toplevel(self)
+        theme_win.title("Выбор темы")
+        theme_win.geometry("320x260+780+160")
+        theme_win.configure(bg=self.theme_color("bg"))
+
+        title = tk.Label(
+            theme_win,
+            text="Выберите тему",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
+            font=("Arial", 16, "bold"),
+        )
+        title.pack(pady=10)
+
+        for theme_name in THEMES:
+            btn = self.make_button(
+                theme_win,
+                theme_name.upper(),
+                lambda name=theme_name: self.apply_theme_choice(theme_win, name),
+                width=24,
+            )
+            btn.pack(pady=5)
+
+        close_btn = self.make_button(theme_win, "Закрыть", theme_win.destroy, width=24)
+        close_btn.pack(pady=12)
 
     # ===== окно настроек =====
 
     def open_settings(self):
         settings_win = tk.Toplevel(self)
         settings_win.title("Настройки")
-        settings_win.geometry("260x220+820+180")
-        settings_win.configure(bg="#ffb6c1")
+        settings_win.geometry("320x300+820+180")
+        settings_win.configure(bg=self.theme_color("bg"))
 
         title = tk.Label(
             settings_win,
-            text="Разрешение окна",
-            fg="#1b1b2f",
-            bg="#ffb6c1",
-            font=("Arial", 14, "bold"),
+            text="Настройки",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
+            font=("Arial", 16, "bold"),
         )
         title.pack(pady=10)
+
+        subtitle = tk.Label(
+            settings_win,
+            text="Разрешение окна",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
+            font=("Arial", 12),
+        )
+        subtitle.pack(pady=(0, 6))
 
         resolutions = [
             ("640 x 640", 640, 640),
@@ -924,35 +1056,29 @@ class ZeroTwoGame(tk.Tk):
         ]
 
         for text, w, h in resolutions:
-            btn = tk.Button(
-                settings_win,
-                text=text,
-                fg="white",
-                bg="#ff1493",
-                activebackground="#ff85c2",
-                activeforeground="white",
-                relief="raised",
-                bd=2,
-                font=("Arial", 11, "bold"),
-                cursor="hand2",
-                command=lambda width=w, height=h: self.apply_resolution(settings_win, width, height),
-            )
-            btn.pack(pady=5)
+            btn = self.make_button(settings_win, text, lambda width=w, height=h: self.apply_resolution(settings_win, width, height), width=22)
+            btn.pack(pady=4)
 
-        close_btn = tk.Button(
+        theme_label = tk.Label(
             settings_win,
-            text="Закрыть",
-            command=settings_win.destroy,
-            fg="white",
-            bg="#ff1493",
-            activebackground="#ff85c2",
-            activeforeground="white",
-            relief="raised",
-            bd=2,
-            font=("Arial", 11, "bold"),
-            cursor="hand2",
+            text="Тема интерфейса",
+            fg=self.theme_color("text"),
+            bg=self.theme_color("bg"),
+            font=("Arial", 12),
         )
-        close_btn.pack(pady=10)
+        theme_label.pack(pady=(14, 6))
+
+        for theme_name in THEMES:
+            btn = self.make_button(
+                settings_win,
+                theme_name.upper(),
+                lambda name=theme_name: self.apply_theme_choice(settings_win, name),
+                width=22,
+            )
+            btn.pack(pady=4)
+
+        close_btn = self.make_button(settings_win, "Закрыть", settings_win.destroy, width=22)
+        close_btn.pack(pady=12)
 
     def apply_resolution(self, settings_win, width, height):
         self.window_width = width
@@ -960,6 +1086,15 @@ class ZeroTwoGame(tk.Tk):
         self.set_geometry(width, height)
         self.save_settings()
         settings_win.destroy()
+
+    def apply_theme_choice(self, settings_win, theme_name):
+        if theme_name in THEMES:
+            self.active_theme = theme_name
+            self.theme = theme_name
+            self.set_geometry(self.window_width, self.window_height)
+            self.save_settings()
+            settings_win.destroy()
+            self.show_status(f"Тема применена: {theme_name.upper()}")
 
 
 if __name__ == "__main__":
