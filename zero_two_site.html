@@ -25,11 +25,7 @@
       --transition-fast: 0.18s ease-out;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       min-height: 100vh;
@@ -44,12 +40,7 @@
       flex-direction: column;
     }
 
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    /* Шапка */
+    a { color: inherit; text-decoration: none; }
 
     header {
       position: sticky;
@@ -133,7 +124,6 @@
     }
 
     .btn {
-      position: relative;
       border-radius: var(--radius-pill);
       border: none;
       cursor: pointer;
@@ -171,19 +161,11 @@
     }
 
     @media (max-width: 840px) {
-      .nav-links {
-        display: none;
-      }
-      .nav-inner {
-        padding-inline: 14px;
-      }
+      .nav-links { display: none; }
+      .nav-inner { padding-inline: 14px; }
     }
 
-    /* Основной контент */
-
-    main {
-      flex: 1;
-    }
+    main { flex: 1; }
 
     .hero {
       max-width: 1120px;
@@ -202,9 +184,7 @@
       }
     }
 
-    .hero-text {
-      position: relative;
-    }
+    .hero-text { position: relative; }
 
     .hero-pill {
       display: inline-flex;
@@ -237,9 +217,7 @@
     }
 
     @media (max-width: 520px) {
-      .hero-title {
-        font-size: 26px;
-      }
+      .hero-title { font-size: 26px; }
     }
 
     .hero-subtitle {
@@ -295,8 +273,6 @@
       box-shadow: 0 0 0 4px rgba(255, 111, 183, 0.35);
     }
 
-    /* Hero‑картинка/панель */
-
     .hero-visual {
       position: relative;
       padding: 16px;
@@ -337,17 +313,9 @@
       border-radius: 999px;
     }
 
-    .hero-visual-dot.red {
-      background: #ff5f57;
-    }
-
-    .hero-visual-dot.yellow {
-      background: #febc2e;
-    }
-
-    .hero-visual-dot.green {
-      background: #28c840;
-    }
+    .hero-visual-dot.red { background: #ff5f57; }
+    .hero-visual-dot.yellow { background: #febc2e; }
+    .hero-visual-dot.green { background: #28c840; }
 
     .hero-gif-box {
       border-radius: 18px;
@@ -419,8 +387,6 @@
       border-radius: var(--radius-pill);
       background: rgba(255, 255, 255, 0.04);
     }
-
-    /* Секция версий */
 
     .section {
       max-width: 1120px;
@@ -511,8 +477,6 @@
       color: var(--text-muted);
     }
 
-    /* Секция об игре */
-
     .about-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
@@ -576,8 +540,6 @@
       margin-top: 8px;
     }
 
-    /* Галерея / скриншоты */
-
     .gallery-row {
       display: grid;
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -633,8 +595,6 @@
       color: var(--accent);
     }
 
-    /* FAQ / футер */
-
     .faq-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -664,9 +624,7 @@
       outline: none;
     }
 
-    summary::-webkit-details-marker {
-      display: none;
-    }
+    summary::-webkit-details-marker { display: none; }
 
     summary span {
       color: #fef4ff;
@@ -678,9 +636,7 @@
       box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
     }
 
-    .faq-body {
-      margin-top: 6px;
-    }
+    .faq-body { margin-top: 6px; }
 
     footer {
       margin-top: 18px;
@@ -743,7 +699,6 @@
   </header>
 
   <main>
-    <!-- HERO -->
     <section class="hero" id="top">
       <div class="hero-text">
         <div class="hero-pill">
@@ -754,8 +709,8 @@
           Кликер с Zero Two, бонго‑анимацией и мягким розовым интерфейсом
         </h1>
         <p class="hero-subtitle">
-          Собирай очки кликами мыши или клавишами, улучшай множитель и автокликер, ускоряй анимацию
-          и открывай альтернативный ALT‑скин Zero Two. Без доната, без онлайна — только ты и розовый вайб.
+          Собирай очки кликами, улучшай множитель и автокликер, ускоряй анимацию
+          и открывай ALT‑скин Zero Two. Без доната, без онлайна — только ты и розовый вайб.
         </p>
 
         <div class="hero-tags">
@@ -791,7 +746,6 @@
             <span>Zero Two Bongo — preview</span>
           </div>
           <div class="hero-gif-box">
-            <!-- сюда потом можно вставить реальную картинку/gif через <img> -->
             <div class="hero-gif-placeholder">
               <strong>Место под арт / GIF с Zero Two</strong>
               <span>Когда подготовишь картинку или анимацию, просто замени этот блок на &lt;img src="..." /&gt; c нужным стилем.</span>
@@ -814,7 +768,6 @@
       </div>
     </section>
 
-    <!-- ВЕРСИИ -->
     <section class="section" id="versions">
       <div class="section-title-row">
         <div class="section-title">Скачать игру</div>
@@ -830,8 +783,7 @@
             <div class="version-pill">Рекомендуемая</div>
           </div>
           <div class="version-meta">
-            Оптимизированная сборка для современных систем. Подходит, если у тебя Windows 10 или 11
-            без экзотических ограничений.
+            Оптимизированная сборка для современных систем. Если у тебя Windows 10 или 11 — бери эту версию.
           </div>
           <div class="version-footer">
             <a href="https://github.com/qwisixe/ИМЯ_РЕПОЗИТОРИЯ/releases/latest/download/ZeroTwoBongo-win10-11.zip">
@@ -847,10 +799,10 @@
         <div class="version-card alt">
           <div class="version-head">
             <div class="version-title">Старые Windows (7 / 8 / 8.1)</div>
-            <div class="version-pill">Совместимая сборка</div>
+            <div class="version-pill">Legacy‑версия</div>
           </div>
           <div class="version-meta">
-            Версия, собранная с учётом старых библиотек и систем. Если игра не запускается на основном билде — попробуй эту.
+            Сборка с учётом старых библиотек и систем. Если основная версия не запускается — попробуй эту.
           </div>
           <div class="version-footer">
             <a href="https://github.com/qwisixe/ИМЯ_РЕПОЗИТОРИЯ/releases/latest/download/ZeroTwoBongo-legacy.zip">
@@ -864,7 +816,6 @@
       </div>
     </section>
 
-    <!-- ОБ ИГРЕ -->
     <section class="section" id="about">
       <div class="section-title-row">
         <div class="section-title">О игре</div>
@@ -877,7 +828,7 @@
         <div class="card">
           <h3>Геймплей и прогресс</h3>
           <p>
-            Zero Two Bongo — это расслабленный кликер: кликай мышью или назначенными клавишами,
+            Zero Two Bongo — расслабленный кликер: кликай мышью или клавишами,
             набирай очки, покупай улучшения и наблюдай, как Zero Two бесконечно отбивает бонго.
           </p>
           <ul class="feature-list">
@@ -929,7 +880,6 @@
       </div>
     </section>
 
-    <!-- ГАЛЕРЕЯ / СКРИНЫ -->
     <section class="section" id="gallery">
       <div class="section-title-row">
         <div class="section-title">Скриншоты и арт</div>
@@ -969,13 +919,10 @@
       </div>
     </section>
 
-    <!-- FAQ -->
     <section class="section" id="faq">
       <div class="section-title-row">
         <div class="section-title">Частые вопросы</div>
-        <div class="section-subtitle">
-          Коротко о запуске, сохранениях и релизах.
-        </div>
+        <div class="section-subtitle">Коротко о запуске, сохранениях и релизах.</div>
       </div>
 
       <div class="faq-grid">
@@ -1013,8 +960,8 @@
           <details>
             <summary><span>У меня старый компьютер, какую версию брать?</span></summary>
             <div class="faq-body">
-              Если у тебя Windows 7, 8 или просто очень старое железо — начни с версии «Старые Windows».
-              Если всё ок — можно пользоваться обычной сборкой для Windows 10/11.
+              Если у тебя Windows 7, 8 или очень старое железо — начни с версии «Старые Windows».
+              Если всё ок, можно пользоваться обычной сборкой для Windows 10/11.
             </div>
           </details>
         </div>
